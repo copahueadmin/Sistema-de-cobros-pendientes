@@ -698,5 +698,61 @@
 
   renderizarCobros();
 </script>
+ <script>
+  const urlSheetDB = 'https://sheetdb.io/api/v1/u1ocqel3bcf3e';
+
+  // 1. FUNCIÓN PARA CARGAR LOS DATOS EN LA TABLA
+  function cargarCobros() {
+    fetch(urlSheetDB)
+      .then(response => response.json())
+      .then(data => {
+        const tabla = document.getElementById('cuerpo-tabla'); // Asegúrate que tu <tbody> tenga este ID
+        tabla.innerHTML = ""; // Limpia la tabla antes de cargar
+
+        data.forEach(fila => {
+          tabla.innerHTML += `
+            <tr>
+              <td>${fila.reserva}</td>
+              <td>${fila.monto}</td>
+              <td>${fila.contacto}</td>
+              <td>${fila.nombre}</td>
+              <td>${fila.apellido}</td>
+              <td>${fila.comentario}</td>
+            </tr>
+          `;
+        });
+      });
+  }
+
+  // 2. FUNCIÓN PARA ENVIAR EL FORMULARIO
+  const form = document.getElementById('form-cobros'); // Asegúrate que tu <form> tenga este ID
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    
+    fetch(urlSheetDB, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: {
+          reserva: document.getElementById('reserva').value,
+          monto: document.getElementById('monto').value,
+          contacto: document.getElementById('contacto').value,
+          nombre: document.getElementById('nombre').value,
+          apellido: document.getElementById('apellido').value,
+          comentario: document.getElementById('comentario').value
+        }
+      })
+    })
+    .then(response => response.json())
+    .then(() => {
+      alert('Registro guardado correctamente');
+      form.reset(); // Limpia el formulario
+      cargarCobros(); // Recarga la tabla automáticamente
+    });
+  });
+
+  // Cargar datos apenas abre la página
+  window.onload = cargarCobros;
+</script>
 </body>
 </html>
