@@ -90,81 +90,6 @@
     </div>
   </div>
 </div>
-
-<script>
-  const API_URL = 'https://sheetdb.io';
-  const form = document.getElementById('cobroForm');
-  const recordsList = document.getElementById('recordsList');
-  const btnRegistrar = document.getElementById('btnRegistrar');
-
-  // 1. CARGAR DATOS DESDE EL EXCEL
-  async function cargarDatos() {
-    try {
-      const res = await fetch(API_URL);
-      const data = await res.json();
-      
-      recordsList.innerHTML = '';
-      if (data.length === 0) {
-        recordsList.innerHTML = '<p style="text-align:center; color:#999;">No hay cobros registrados.</p>';
-        return;
-      }
-
-      // Mostramos los últimos registros arriba (reverse)
-      data.reverse().forEach(item => {
-        recordsList.innerHTML += `
-          <div class="record-item">
-            <div class="record-header">
-              <span class="record-reserva">#${item.reserva || '---'}</span>
-              <span class="record-monto">$${item.monto || '0'}</span>
-            </div>
-            <div class="record-details">
-              <strong>${item.nombre || ''} ${item.apellido || ''}</strong><br>
-              <i class="fa-solid fa-phone"></i> ${item.contacto || 'Sin contacto'}<br>
-              <small>${item.comentario || ''}</small>
-            </div>
-          </div>
-        `;
-      });
-    } catch (e) {
-      recordsList.innerHTML = '<p style="color:red;">Error al conectar con la base de datos.</p>';
-    }
-  }
-
-  // 2. ENVIAR DATOS AL EXCEL
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    btnRegistrar.disabled = true;
-    btnRegistrar.innerText = 'Guardando...';
-
-    const nuevoCobro = {
-      reserva: document.getElementById('reserva').value,
-      monto: document.getElementById('monto').value,
-      contacto: document.getElementById('contacto').value,
-      nombre: document.getElementById('nombre').value,
-      apellido: document.getElementById('apellido').value,
-      comentario: document.getElementById('comentario').value
-    };
-
-    try {
-      await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: [nuevoCobro] })
-      });
-      form.reset();
-      alert('¡Cobro registrado con éxito!');
-      cargarDatos(); // Recargar lista
-    } catch (e) {
-      alert('Error al guardar datos.');
-    } finally {
-      btnRegistrar.disabled = false;
-      btnRegistrar.innerText = 'Registrar';
-    }
-  });
-
-  // Cargar al abrir la página
-  window.onload = cargarDatos;
-</script>
 <script>
   // Tu URL de SheetDB
   const API_URL = 'https://sheetdb.io';
@@ -252,5 +177,6 @@
   // Ejecutar al cargar la página
   window.onload = cargarDatos;
 </script>
+
 </body>
 </html>
