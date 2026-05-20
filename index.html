@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Cobros - Hotel Copahue</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f5f5f5;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2rem;
+    padding: 0 0 1.5rem 0;
+    border-bottom: 2px solid #ddd;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .header-subtitle {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .form-section {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .form-section h2 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .form-row.full {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 0.4rem;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 0.6rem;
+    border: 0.5px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    background: white;
+    color: #333;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #378ADD;
+    box-shadow: 0 0 0 2px rgba(55, 138, 221, 0.1);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+    grid-column: 1 / -1;
+    margin-bottom: 1rem;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 1rem;
+  }
+
+  button {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    border: 0.5px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button:hover {
+    background: #f0f0f0;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  button.primary {
+    background: #378ADD;
+    color: white;
+    border-color: #378ADD;
+  }
+
+  button.primary:hover {
+    background: #2569c6;
+  }
+
+  .table-section {
+    background: white;
+    border: 0.5px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .table-section h2 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .stat-card {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-value {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .records-list {
+    max-height: 520px;
+    overflow-y: auto;
+  }
+
+  .record-item {
+    background: #f9f9f9;
+    border: 0.5px solid #ddd;
+    border-radius: 8px;
+    padding: 0.85rem;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+  }
+
+  .record-item:hover {
+    border-color: #bbb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .record-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 0.5rem;
+  }
+
+  .record-reserva {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .record-monto {
+    font-size: 15px;
+    font-weight: 500;
+    color: #378ADD;
+  }
+
+  .record-details {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 0.4rem;
+    line-height: 1.4;
+  }
+
+  .record-actions {
+    margin-top: 0.6rem;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .record-actions button {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 8px;
+    border: none;
+  }
+
+  .record-actions .edit-btn {
+    background: #378ADD;
+    color: white;
+  }
+
+  .record-actions .edit-btn:hover {
+    background: #2569c6;
+  }
+
+  .record-actions .delete-btn {
+    background: #E24B4A;
+    color: white;
+  }
+
+  .record-actions .delete-btn:hover {
+    background: #c63635;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    color: #666;
+  }
+
+  .empty-state-icon {
+    font-size: 40px;
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+  }
+
+  .alert {
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 12px;
+    display: none;
+  }
+
+  .alert.success {
+    background: #39A852;
+    color: white;
+    border: 0.5px solid #2d8a42;
+    display: block;
+    font-weight: 500;
+  }
+
+  .alert.error {
+    background: rgba(226, 75, 74, 0.1);
+    color: #791F1F;
+    border: 0.5px solid rgba(226, 75, 74, 0.2);
+    display: block;
+  }
+
+  .security-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .security-modal.active {
+    display: flex;
+  }
+
+  .security-modal-content {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 300px;
+    border: 0.5px solid #ddd;
+  }
+
+  .security-modal h3 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+
+  .security-modal input {
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+
+  .security-modal .button-group {
+    margin-top: 0;
+    gap: 8px;
+  }
+
+  .security-modal button {
+    padding: 0.65rem 1rem;
+  }
+
+  @media (max-width: 900px) {
+    .main-content {
+      grid-template-columns: 1fr;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Gestión de Cobros - Hotel Copahue</h1>
+    <p class="header-subtitle">Sistema temporal de registro de pagos pendientes</p>
+  </header>
+
+  <div class="main-content">
+    <!-- Formulario -->
+    <div class="form-section">
+      <h2>✏️ Registrar Cobro</h2>
+      
+      <div id="alert" class="alert"></div>
+
+      <form id="cobroForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reserva">Número de Reserva *</label>
+            <input type="text" id="reserva" placeholder="00000" maxlength="5" pattern="[0-9]{5}" required>
+          </div>
+          <div class="form-group">
+            <label for="monto">Monto ($) *</label>
+            <input type="text" id="monto" placeholder="100000" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="contactoInfo">Teléfono / Correo *</label>
+          <input type="text" id="contactoInfo" placeholder="Ej: +54 9 11 2345-6789 o email@ejemplo.com" required>
+        </div>
+
+        <div class="form-row full">
+          <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" placeholder="Juan">
+          </div>
+          <div class="form-group">
+            <label for="apellido">Apellido</label>
+            <input type="text" id="apellido" placeholder="Pérez">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="comentario">Comentario adicional</label>
+          <textarea id="comentario" placeholder="Notas o aclaraciones..."></textarea>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="primary">Registrar</button>
+          <button type="reset">Limpiar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tabla de registros -->
+    <div class="table-section">
+      <h2>📋 Cobros Pendientes</h2>
+      
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Total cobros</div>
+          <div class="stat-value" id="totalCobros">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Monto total</div>
+          <div class="stat-value" id="totalMonto">$0,00</div>
+        </div>
+      </div>
+
+      <div class="records-list" id="recordsList">
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <p>No hay cobros registrados</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de seguridad -->
+<div class="security-modal" id="securityModal">
+  <div class="security-modal-content">
+    <h3>Código de seguridad requerido</h3>
+    <input type="password" id="codigoSeguridad" placeholder="Ingrese código" maxlength="2">
+    <div class="button-group">
+      <button class="primary" onclick="verificarCodigo()">Confirmar</button>
+      <button onclick="cancelarEliminar()">Cancelar</button>
+    </div>
+  </div>
+</div>
+<script>
+  const form = document.getElementById('cobroForm');
+  const recordsList = document.getElementById('recordsList');
+  const alert = document.getElementById('alert');
+  const totalCobrosEl = document.getElementById('totalCobros');
+  const totalMontoEl = document.getElementById('totalMonto');
+  const montoInput = document.getElementById('monto');
+  const securityModal = document.getElementById('securityModal');
+  const codigoInput = document.getElementById('codigoSeguridad');
+
+  let cobros = JSON.parse(localStorage.getItem('cobros')) || [];
+  let idAEliminar = null;
+
+  function formatearMonto(valor) {
+    let texto = valor.toString();
+    let soloDigitos = texto.replace(/\D/g, '');
+    let decimales = '';
+    
+    if (texto.includes(',')) {
+      const partes = texto.split(',');
+      if (partes[1]) {
+        decimales = partes[1].substring(0, 2);
+      }
+    }
+    
+    let resultado = '';
+    for (let i = 0; i < soloDigitos.length; i++) {
+      if (i > 0 && (soloDigitos.length - i) % 3 === 0) {
+        resultado += '.';
+      }
+      resultado += soloDigitos[i];
+    }
+    
+    if (decimales) {
+      resultado += ',' + decimales;
+    }
+    
+    return resultado;
+  }
+
+  function extraerNumero(valor) {
+    const partes = valor.split(',');
+    const entero = partes[0].replace(/\./g, '');
+    const decimal = partes[1] ? partes[1].substring(0, 2).padEnd(2, '0') : '00';
+    
+    if (entero === '') return 0;
+    return parseFloat(entero + '.' + decimal);
+  }
+
+  montoInput.addEventListener('input', function(e) {
+    const cursorPos = e.target.selectionStart;
+    const valor = e.target.value;
+    
+    let soloNumeros = valor.replace(/[^\d,]/g, '');
+    
+    if (soloNumeros.includes(',')) {
+      const partes = soloNumeros.split(',');
+      if (partes.length > 2) {
+        soloNumeros = partes[0] + ',' + partes.slice(1).join('').substring(0, 2);
+      }
+      if (partes[1] && partes[1].length > 2) {
+        soloNumeros = partes[0] + ',' + partes[1].substring(0, 2);
+      }
+    }
+    
+    const formateado = soloNumeros === '' ? '' : formatearMonto(soloNumeros);
+    
+    if (valor !== formateado) {
+      const diferencia = formateado.length - valor.length;
+      e.target.value = formateado;
+      const nuevaPosicion = Math.min(cursorPos + diferencia, formateado.length);
+      setTimeout(() => {
+        e.target.setSelectionRange(nuevaPosicion, nuevaPosicion);
+      }, 0);
+    }
+  });
+
+  function mostrarAlerta(mensaje, tipo) {
+    alert.textContent = mensaje;
+    alert.className = 'alert ' + tipo;
+    setTimeout(() => {
+      alert.className = 'alert';
+    }, 3000);
+  }
+
+  function actualizarStats() {
+    totalCobrosEl.textContent = cobros.length;
+    const total = cobros.reduce((sum, c) => sum + c.montoNumerico, 0);
+    totalMontoEl.textContent = '$' + total.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function renderizarCobros() {
+    if (cobros.length === 0) {
+      recordsList.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <p>No hay cobros registrados</p>
+        </div>
+      `;
+      actualizarStats();
+      return;
+    }
+
+    recordsList.innerHTML = cobros.map((cobro) => `
+      <div class="record-item">
+        <div class="record-header">
+          <span class="record-reserva">Res: ${cobro.reserva}</span>
+          <span class="record-monto">$${cobro.montoFormateado}</span>
+        </div>
+        <div class="record-details">
+          ${cobro.contactoInfo}<br>
+          ${cobro.nombre && cobro.apellido ? `${cobro.nombre} ${cobro.apellido}<br>` : ''}
+          ${cobro.nombre && !cobro.apellido ? `${cobro.nombre}<br>` : ''}
+          <span style="font-size: 11px; opacity: 0.7;">${new Date(cobro.fecha).toLocaleString('es-AR')}</span>
+        </div>
+        ${cobro.comentario ? `<div class="record-details" style="margin-top: 0.4rem; font-style: italic;">📝 ${cobro.comentario}</div>` : ''}
+        <div class="record-actions">
+          <button class="edit-btn" onclick="editarCobro('${cobro.id}')" title="Editar">✏️</button>
+          <button class="delete-btn" onclick="mostrarModalSeguridad('${cobro.id}')" title="Eliminar">✕</button>
+        </div>
+      </div>
+    `).join('');
+
+    actualizarStats();
+  }
+
+  function mostrarModalSeguridad(id) {
+    idAEliminar = id;
+    codigoInput.value = '';
+    securityModal.classList.add('active');
+    codigoInput.focus();
+  }
+
+  window.verificarCodigo = function() {
+    if (codigoInput.value === '01') {
+      securityModal.classList.remove('active');
+      eliminarCobro(idAEliminar);
+      idAEliminar = null;
+    } else {
+      mostrarAlerta('Código incorrecto', 'error');
+      codigoInput.value = '';
+      codigoInput.focus();
+    }
+  };
+
+  window.cancelarEliminar = function() {
+    securityModal.classList.remove('active');
+    idAEliminar = null;
+  };
+
+  codigoInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      verificarCodigo();
+    }
+  });
+
+  function eliminarCobro(id) {
+    cobros = cobros.filter(c => c.id !== id);
+    localStorage.setItem('cobros', JSON.stringify(cobros));
+    renderizarCobros();
+    mostrarAlerta('✓ Cobro eliminado', 'success');
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const reserva = document.getElementById('reserva').value.trim();
+    const contactoInfo = document.getElementById('contactoInfo').value.trim();
+    const montoTexto = montoInput.value.trim();
+
+    if (reserva === '') {
+      mostrarAlerta('Ingrese número de reserva', 'error');
+      return;
+    }
+
+    if (montoTexto === '') {
+      mostrarAlerta('Ingrese un monto válido', 'error');
+      return;
+    }
+
+    if (contactoInfo === '') {
+      mostrarAlerta('Ingrese teléfono o correo', 'error');
+      return;
+    }
+
+    const montoNumerico = extraerNumero(montoTexto);
+
+    if (!montoNumerico || montoNumerico === 0) {
+      mostrarAlerta('Ingrese un monto válido', 'error');
+      return;
+    }
+
+    const nuevoCobro = {
+      id: Date.now().toString(),
+      reserva: reserva,
+      montoNumerico: montoNumerico,
+      montoFormateado: montoTexto,
+      nombre: document.getElementById('nombre').value.trim(),
+      apellido: document.getElementById('apellido').value.trim(),
+      contactoInfo: contactoInfo,
+      comentario: document.getElementById('comentario').value.trim(),
+      fecha: new Date().toISOString()
+    };
+
+    cobros.unshift(nuevoCobro);
+    localStorage.setItem('cobros', JSON.stringify(cobros));
+    
+    form.reset();
+    renderizarCobros();
+    mostrarAlerta('✓ Cobro registrado', 'success');
+  });
+
+  window.editarCobro = function(id) {
+    const cobro = cobros.find(c => c.id === id);
+    if (cobro) {
+      document.getElementById('reserva').value = cobro.reserva;
+      document.getElementById('monto').value = cobro.montoFormateado;
+      document.getElementById('nombre').value = cobro.nombre;
+      document.getElementById('apellido').value = cobro.apellido;
+      document.getElementById('contactoInfo').value = cobro.contactoInfo;
+      document.getElementById('comentario').value = cobro.comentario;
+
+      cobros = cobros.filter(c => c.id !== id);
+      localStorage.setItem('cobros', JSON.stringify(cobros));
+      renderizarCobros();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && securityModal.classList.contains('active')) {
+      cancelarEliminar();
+    }
+  });
+
+  renderizarCobros();
+</script>
+<script>
+  const urlSheetDB = 'https://sheetdb.io/api/v1/u1ocqel3bcf3e';
+
+  // 1. FUNCIÓN PARA CARGAR LOS DATOS EN LA TABLA
+  function cargarCobros() {
+    fetch(urlSheetDB)
+      .then(response => response.json())
+      .then(data => {
+        const tabla = document.getElementById('cuerpo-tabla'); // Asegúrate que tu <tbody> tenga este ID
+        tabla.innerHTML = ""; // Limpia la tabla antes de cargar
+
+        data.forEach(fila => {
+          tabla.innerHTML += `
+            <tr>
+              <td>${fila.reserva}</td>
+              <td>${fila.monto}</td>
+              <td>${fila.contacto}</td>
+              <td>${fila.nombre}</td>
+              <td>${fila.apellido}</td>
+              <td>${fila.comentario}</td>
+            </tr>
+          `;
+        });
+      });
+  }
+
+  // 2. FUNCIÓN PARA ENVIAR EL FORMULARIO
+  const form = document.getElementById('form-cobros'); // Asegúrate que tu <form> tenga este ID
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    
+    fetch(urlSheetDB, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: {
+          reserva: document.getElementById('reserva').value,
+          monto: document.getElementById('monto').value,
+          contacto: document.getElementById('contacto').value,
+          nombre: document.getElementById('nombre').value,
+          apellido: document.getElementById('apellido').value,
+          comentario: document.getElementById('comentario').value
+        }
+      })
+    })
+    .then(response => response.json())
+    .then(() => {
+      alert('Registro guardado correctamente');
+      form.reset(); // Limpia el formulario
+      cargarCobros(); // Recarga la tabla automáticamente
+    });
+  });
+
+  // Cargar datos apenas abre la página
+  window.onload = cargarCobros;
+</script>
+</body>
+</html>
