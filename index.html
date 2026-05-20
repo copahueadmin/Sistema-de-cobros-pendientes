@@ -165,6 +165,92 @@
   // Cargar al abrir la página
   window.onload = cargarDatos;
 </script>
+<script>
+  // Tu URL de SheetDB
+  const API_URL = 'https://sheetdb.io';
 
+  // FUNCIÓN PARA CARGAR DATOS (CON DIAGNÓSTICO)
+  async function cargarDatos() {
+    const recordsList = document.getElementById('recordsList');
+    try {
+      const res = await fetch(API_URL);
+      
+      // Si la API responde mal, nos dirá el código de error
+      if (!res.ok) {
+        throw new Error("Error " + res.status + ": No se pudo conectar con el Excel.");
+      }
+      
+      const data = await res.json();
+      recordsList.innerHTML = '';
+
+      if (!data || data.length === 0) {
+        recordsList.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Conexión exitosa, pero el Excel está vacío.</p>';
+        return;
+      }
+
+      data.reverse().forEach(item => {
+        recordsList.innerHTML += `
+          <div class="record-item">
+            <div class="record-header">
+              <span class="record-reserva">#${item.reserva || '---'}</span>
+              <span class="record-monto">$${item.monto || '0'}</span>
+            </div>
+            <div class="record-details">
+              <strong>${item.nombre || ''} ${item.apellido || ''}</strong><br>
+              ${item.contacto || ''}<br>
+              <small>${item.comentario || ''}</small>
+            </div>
+          </div>`;
+      });
+    } catch (e) {
+      // AQUÍ VERÁS EL ERROR REAL EN PANTALLA
+      recordsList.innerHTML = `<p style="color:red; text-align:center; padding:20px;">⚠️ ${e.message}</p>`;
+      console.error(e);
+    }
+  }
+
+  // FUNCIÓN PARA ENVIAR DATOS
+  document.getElementById('cobroForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btnRegistrar');
+    btn.disabled = true;
+    btn.innerText = 'Guardando...';
+
+    const payload = {
+      data: [{
+        reserva: document.getElementById('reserva').value,
+        monto: document.getElementById('monto').value,
+        contacto: document.getElementById('contacto').value,
+        nombre: document.getElementById('nombre').value,
+        apellido: document.getElementById('apellido').value,
+        comentario: document.getElementById('comentario').value
+      }]
+    };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        alert('✅ ¡Guardado con éxito!');
+        document.getElementById('cobroForm').reset();
+        cargarDatos(); // Refrescar lista
+      } else {
+        alert('❌ Error al guardar. Verifica los permisos de SheetDB.');
+      }
+    } catch (e) {
+      alert('❌ Error de conexión de internet.');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'Registrar';
+    }
+  });
+
+  // Ejecutar al cargar la página
+  window.onload = cargarDatos;
+</script>
 </body>
 </html>
