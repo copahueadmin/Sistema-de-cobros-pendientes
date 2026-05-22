@@ -30,25 +30,25 @@
   .form-group { margin-bottom: 1rem; }
   label { display: block; font-size: 12px; color: #666; margin-bottom: 0.4rem; font-weight: bold; }
   
-  /* Recuadros de datos con fondo gris medio-oscuro */
+  /* Recuadros de datos con fondo gris muy clarito */
   input, textarea { 
     width: 100%; 
     padding: 0.6rem; 
-    border: 1px solid #444; 
+    border: 1px solid #ddd; 
     border-radius: 8px; 
     font-size: 14px; 
     outline-color: #10b981;
-    background-color: #52525b; /* Gris medio-oscuro */
-    color: #ffffff; /* Texto en blanco para contraste */
+    background-color: #f5f5f5; /* Gris muy clarito */
+    color: #333; /* Texto oscuro para que resalte sobre el fondo claro */
   }
   
-  /* Color del texto indicatorio (placeholder) para que se lea bien sobre gris oscuro */
+  /* Color del texto indicatorio (placeholder) */
   input::placeholder, textarea::placeholder {
-    color: #d1d5db; 
+    color: #999; 
   }
 
-  /* Estilo para campos deshabilitados (ej. al editar) sobre el tema oscuro */
-  input:disabled { background-color: #3f3f46; cursor: not-allowed; opacity: 0.8; }
+  /* Estilo para campos deshabilitados (ej. al editar) */
+  input:disabled { background-color: #e5e5e5; cursor: not-allowed; }
   
   .button-group { display: flex; gap: 8px; margin-top: 1.5rem; }
   button { flex: 1; padding: 0.65rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; border: none; }
@@ -59,7 +59,15 @@
   button[type="reset"] { background: #ecfdf5; color: #064e3b; border: 1px solid #10b981; } 
   button[type="reset"]:hover { background: #d1fae5; }
   
-  .record-item { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 1rem; margin-bottom: 10px; transition: 0.2s; }
+  /* Cobros registrados con el mismo fondo gris clarito que los inputs */
+  .record-item { 
+    background-color: #f5f5f5; /* Mismo gris muy clarito */
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    padding: 1rem; 
+    margin-bottom: 10px; 
+    transition: 0.2s; 
+  }
   .record-item:hover { border-color: #10b981; }
   .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-weight: bold; }
   
