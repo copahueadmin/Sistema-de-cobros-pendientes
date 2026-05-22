@@ -7,37 +7,34 @@
 <link rel="stylesheet" href="https://cloudflare.com">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; padding: 2rem 1rem; }
+  /* Fondo más oscuro aplicado en el body */
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #d4d4d4; padding: 2rem 1rem; }
   .container { max-width: 1200px; margin: 0 auto; }
   header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #ddd; }
   h1 { font-size: 28px; font-weight: 500; color: #333; }
   .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
   .form-section, .table-section { background: white; border: 0.5px solid #ddd; border-radius: 8px; padding: 1.5rem; }
   
-  /* Nuevas reglas para agrupar campos en un mismo renglón */
   .form-row { display: flex; gap: 1rem; }
   .form-row .form-group { flex: 1; }
   
   .form-group { margin-bottom: 1rem; }
   label { display: block; font-size: 12px; color: #666; margin-bottom: 0.4rem; font-weight: bold; }
   input, textarea { width: 100%; padding: 0.6rem; border: 0.5px solid #ddd; border-radius: 8px; font-size: 14px; }
-  /* Estilo para cuando el campo está deshabilitado (ej. al editar) */
-  input:disabled { background: #e9ecef; cursor: not-allowed; }
   
   .button-group { display: flex; gap: 8px; margin-top: 1.5rem; }
   button { flex: 1; padding: 0.65rem; border-radius: 8px; border: 0.5px solid #ddd; cursor: pointer; font-weight: 500; transition: 0.2s;}
   button:hover { filter: brightness(0.95); }
   button.primary { background: #378ADD; color: white; border: none; }
-  button.edit-mode { background: #28a745; color: white; border: none; } /* Color verde para el botón actualizar */
+  button.edit-mode { background: #28a745; color: white; border: none; }
   
   .record-item { background: #f9f9f9; border: 0.5px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 10px; }
-  .record-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: bold; }
+  .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-weight: bold; }
   
-  /* Botón de editar en la lista */
-  .record-actions { margin-top: 0.8rem; display: flex; justify-content: flex-end; }
-  .btn-editar { background: #ffc107; color: #333; border: none; padding: 0.4rem 0.8rem; font-size: 12px; border-radius: 4px; cursor: pointer;}
+  /* Nuevo estilo para agrupar la reserva y el botón editar */
+  .reserva-group { display: flex; align-items: center; gap: 8px; }
+  .btn-editar { background: #ffc107; color: #333; border: none; padding: 0.2rem 0.5rem; font-size: 11px; border-radius: 4px; cursor: pointer; }
   
-  /* Adaptación para móviles */
   @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
   @media (max-width: 500px) { .form-row { flex-direction: column; gap: 0; } }
 </style>
@@ -61,7 +58,7 @@
           </div>
           <div class="form-group">
             <label>Monto</label>
-            <input type="number" id="monto" placeholder="$" required>
+            <input type="text" id="monto" placeholder="$" required>
           </div>
         </div>
 
@@ -103,12 +100,10 @@
 <script>
   const API_URL = 'https://sheetdb.io/api/v1/g5o4pfx1hc0ci';
   
-  // Variables globales para la edición
   let cobrosCache = []; 
   let modoEdicion = false;
   let reservaEditando = null;
 
-  // 1. Cargar datos desde SheetDB
   async function cargarDatos() {
     const list = document.getElementById('recordsList');
     try {
@@ -116,7 +111,7 @@
       if (!res.ok) throw new Error("Error " + res.status);
       
       const data = await res.json();
-      cobrosCache = data; // Guardamos en caché para usar al editar
+      cobrosCache = data; 
       list.innerHTML = '';
       
       if (!data || data.length === 0) {
@@ -124,18 +119,20 @@
         return;
       }
       
-      // Invertir para mostrar primero los últimos, pero clonando el array para no mutar el caché
       [...data].reverse().forEach(item => {
         list.innerHTML += `
           <div class="record-item">
-            <div class="record-header"><span>#${item.reserva}</span><span>$${item.monto}</span></div>
+            <div class="record-header">
+              <div class="reserva-group">
+                <span>#${item.reserva}</span>
+                <button class="btn-editar" onclick="iniciarEdicion('${item.reserva}')">✏️ Editar</button>
+              </div>
+              <span>$${item.monto}</span>
+            </div>
             <div style="font-size:13px; color:#555;">
               <strong>${item.nombre} ${item.apellido}</strong><br>
               Contacto: ${item.contacto}<br>
               ${item.comentario ? `<em>Nota: ${item.comentario}</em>` : ''}
-            </div>
-            <div class="record-actions">
-              <button class="btn-editar" onclick="iniciarEdicion('${item.reserva}')">✏️ Editar</button>
             </div>
           </div>`;
       });
@@ -144,12 +141,10 @@
     }
   }
 
-  // 2. Llenar el formulario para editar
   window.iniciarEdicion = function(reservaId) {
     const cobro = cobrosCache.find(c => c.reserva === reservaId);
     if (!cobro) return;
 
-    // Poblar los inputs
     document.getElementById('reserva').value = cobro.reserva;
     document.getElementById('monto').value = cobro.monto;
     document.getElementById('contacto').value = cobro.contacto;
@@ -157,33 +152,25 @@
     document.getElementById('apellido').value = cobro.apellido;
     document.getElementById('comentario').value = cobro.comentario || '';
 
-    // Cambiar la UI a "Modo Edición"
     modoEdicion = true;
-    reservaEditando = reservaId;
-    
-    // Bloquear el campo de reserva para no perder la referencia (identificador)
-    document.getElementById('reserva').disabled = true;
+    reservaEditando = reservaId; // Guardamos el ID original para saber qué fila actualizar
     
     const btn = document.getElementById('btnRegistrar');
     btn.innerText = 'Actualizar Cobro';
     btn.className = 'edit-mode';
     
-    // Hacer scroll hacia arriba suavemente
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 3. Manejar el Reset / Cancelar Edición
   document.getElementById('cobroForm').addEventListener('reset', () => {
     modoEdicion = false;
     reservaEditando = null;
-    document.getElementById('reserva').disabled = false;
     
     const btn = document.getElementById('btnRegistrar');
     btn.innerText = 'Registrar';
     btn.className = 'primary';
   });
 
-  // 4. Enviar Formulario (Crear o Actualizar)
   document.getElementById('cobroForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnRegistrar');
@@ -192,9 +179,8 @@
     btn.innerText = 'Guardando...';
     btn.disabled = true;
     
-    // Construir el objeto de datos
     const payload = {
-      reserva: document.getElementById('reserva').value,
+      reserva: document.getElementById('reserva').value, // Puede ser nuevo o el mismo
       monto: document.getElementById('monto').value,
       contacto: document.getElementById('contacto').value,
       nombre: document.getElementById('nombre').value,
@@ -204,7 +190,7 @@
 
     try {
       if (modoEdicion) {
-        // ACTUALIZAR (PUT) buscando por la columna 'reserva'
+        // Actualizamos buscando la fila por el número de reserva original (reservaEditando)
         await fetch(`${API_URL}/reserva/${reservaEditando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -212,7 +198,6 @@
         });
         alert('¡Cobro actualizado con éxito!');
       } else {
-        // CREAR NUEVO (POST)
         await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -221,7 +206,6 @@
         alert('¡Cobro registrado!');
       }
       
-      // Limpiar formulario y recargar lista
       document.getElementById('cobroForm').reset();
       cargarDatos();
       
@@ -233,7 +217,6 @@
     }
   });
 
-  // Cargar datos al iniciar
   window.onload = cargarDatos;
 </script>
 </body>
