@@ -7,33 +7,49 @@
 <link rel="stylesheet" href="https://cloudflare.com">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  /* Fondo más oscuro aplicado en el body */
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #d4d4d4; padding: 2rem 1rem; }
+  
+  /* Fondo con degradado de verde oscuro a verde intermedio */
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    background: linear-gradient(135deg, #064e3b 0%, #059669 100%); 
+    min-height: 100vh;
+    padding: 2rem 1rem; 
+  }
+  
   .container { max-width: 1200px; margin: 0 auto; }
-  header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #ddd; }
-  h1 { font-size: 28px; font-weight: 500; color: #333; }
+  
+  /* Título adaptado para resaltar sobre el fondo oscuro */
+  header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(255, 255, 255, 0.2); }
+  h1 { font-size: 28px; font-weight: 500; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+  
   .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-  .form-section, .table-section { background: white; border: 0.5px solid #ddd; border-radius: 8px; padding: 1.5rem; }
+  .form-section, .table-section { background: white; color: #333; border-radius: 8px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
   
   .form-row { display: flex; gap: 1rem; }
   .form-row .form-group { flex: 1; }
   
   .form-group { margin-bottom: 1rem; }
   label { display: block; font-size: 12px; color: #666; margin-bottom: 0.4rem; font-weight: bold; }
-  input, textarea { width: 100%; padding: 0.6rem; border: 0.5px solid #ddd; border-radius: 8px; font-size: 14px; }
+  input, textarea { width: 100%; padding: 0.6rem; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline-color: #059669; }
   
   .button-group { display: flex; gap: 8px; margin-top: 1.5rem; }
-  button { flex: 1; padding: 0.65rem; border-radius: 8px; border: 0.5px solid #ddd; cursor: pointer; font-weight: 500; transition: 0.2s;}
-  button:hover { filter: brightness(0.95); }
-  button.primary { background: #378ADD; color: white; border: none; }
-  button.edit-mode { background: #28a745; color: white; border: none; }
+  button { flex: 1; padding: 0.65rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; border: none; }
+  button:hover { filter: brightness(0.9); transform: translateY(-1px); }
   
-  .record-item { background: #f9f9f9; border: 0.5px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 10px; }
+  /* Botones con paleta de verdes */
+  button.primary { background: #059669; color: white; } /* Verde intermedio para registrar */
+  button.edit-mode { background: #064e3b; color: white; } /* Verde oscuro para actualizar */
+  button[type="reset"] { background: #ecfdf5; color: #064e3b; border: 1px solid #10b981; } /* Verde muy clarito para cancelar */
+  button[type="reset"]:hover { background: #d1fae5; }
+  
+  .record-item { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 1rem; margin-bottom: 10px; transition: 0.2s; }
+  .record-item:hover { border-color: #10b981; }
   .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-weight: bold; }
   
-  /* Nuevo estilo para agrupar la reserva y el botón editar */
   .reserva-group { display: flex; align-items: center; gap: 8px; }
-  .btn-editar { background: #ffc107; color: #333; border: none; padding: 0.2rem 0.5rem; font-size: 11px; border-radius: 4px; cursor: pointer; }
+  
+  /* Botón de editar más integrado a la paleta verde */
+  .btn-editar { background: #10b981; color: white; padding: 0.2rem 0.6rem; font-size: 11px; border-radius: 4px; cursor: pointer; }
   
   @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
   @media (max-width: 500px) { .form-row { flex-direction: column; gap: 0; } }
@@ -48,7 +64,7 @@
 
   <div class="main-content">
     <div class="form-section">
-      <h2 style="margin-bottom: 1rem;">✏️ Registrar Cobro</h2>
+      <h2 style="margin-bottom: 1rem; color: #064e3b;">✏️ Registrar Cobro</h2>
       <form id="cobroForm">
         
         <div class="form-row">
@@ -91,7 +107,7 @@
     </div>
 
     <div class="table-section">
-      <h2 style="margin-bottom: 1rem;">📋 Cobros Registrados</h2>
+      <h2 style="margin-bottom: 1rem; color: #064e3b;">📋 Cobros Registrados</h2>
       <div id="recordsList">Cargando...</div>
     </div>
   </div>
@@ -127,7 +143,7 @@
                 <span>#${item.reserva}</span>
                 <button class="btn-editar" onclick="iniciarEdicion('${item.reserva}')">✏️ Editar</button>
               </div>
-              <span>$${item.monto}</span>
+              <span style="color: #059669;">$${item.monto}</span>
             </div>
             <div style="font-size:13px; color:#555;">
               <strong>${item.nombre} ${item.apellido}</strong><br>
@@ -153,7 +169,7 @@
     document.getElementById('comentario').value = cobro.comentario || '';
 
     modoEdicion = true;
-    reservaEditando = reservaId; // Guardamos el ID original para saber qué fila actualizar
+    reservaEditando = reservaId; 
     
     const btn = document.getElementById('btnRegistrar');
     btn.innerText = 'Actualizar Cobro';
@@ -180,7 +196,7 @@
     btn.disabled = true;
     
     const payload = {
-      reserva: document.getElementById('reserva').value, // Puede ser nuevo o el mismo
+      reserva: document.getElementById('reserva').value,
       monto: document.getElementById('monto').value,
       contacto: document.getElementById('contacto').value,
       nombre: document.getElementById('nombre').value,
@@ -190,7 +206,6 @@
 
     try {
       if (modoEdicion) {
-        // Actualizamos buscando la fila por el número de reserva original (reservaEditando)
         await fetch(`${API_URL}/reserva/${reservaEditando}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
