@@ -13,15 +13,33 @@
   h1 { font-size: 28px; font-weight: 500; color: #333; }
   .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
   .form-section, .table-section { background: white; border: 0.5px solid #ddd; border-radius: 8px; padding: 1.5rem; }
+  
+  /* Nuevas reglas para agrupar campos en un mismo renglón */
+  .form-row { display: flex; gap: 1rem; }
+  .form-row .form-group { flex: 1; }
+  
   .form-group { margin-bottom: 1rem; }
-  label { display: block; font-size: 12px; color: #666; margin-bottom: 0.4rem; }
+  label { display: block; font-size: 12px; color: #666; margin-bottom: 0.4rem; font-weight: bold; }
   input, textarea { width: 100%; padding: 0.6rem; border: 0.5px solid #ddd; border-radius: 8px; font-size: 14px; }
-  .button-group { display: flex; gap: 8px; }
-  button { flex: 1; padding: 0.65rem; border-radius: 8px; border: 0.5px solid #ddd; cursor: pointer; }
+  /* Estilo para cuando el campo está deshabilitado (ej. al editar) */
+  input:disabled { background: #e9ecef; cursor: not-allowed; }
+  
+  .button-group { display: flex; gap: 8px; margin-top: 1.5rem; }
+  button { flex: 1; padding: 0.65rem; border-radius: 8px; border: 0.5px solid #ddd; cursor: pointer; font-weight: 500; transition: 0.2s;}
+  button:hover { filter: brightness(0.95); }
   button.primary { background: #378ADD; color: white; border: none; }
+  button.edit-mode { background: #28a745; color: white; border: none; } /* Color verde para el botón actualizar */
+  
   .record-item { background: #f9f9f9; border: 0.5px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 10px; }
   .record-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: bold; }
+  
+  /* Botón de editar en la lista */
+  .record-actions { margin-top: 0.8rem; display: flex; justify-content: flex-end; }
+  .btn-editar { background: #ffc107; color: #333; border: none; padding: 0.4rem 0.8rem; font-size: 12px; border-radius: 4px; cursor: pointer;}
+  
+  /* Adaptación para móviles */
   @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
+  @media (max-width: 500px) { .form-row { flex-direction: column; gap: 0; } }
 </style>
 </head>
 <body>
@@ -33,47 +51,92 @@
 
   <div class="main-content">
     <div class="form-section">
-      <h2>✏️ Registrar Cobro</h2>
+      <h2 style="margin-bottom: 1rem;">✏️ Registrar Cobro</h2>
       <form id="cobroForm">
-        <div class="form-group"><label>Reserva</label><input type="text" id="reserva" required></div>
-        <div class="form-group"><label>Monto</label><input type="number" id="monto" required></div>
-        <div class="form-group"><label>Contacto</label><input type="text" id="contacto" required></div>
-        <div class="form-group"><label>Nombre</label><input type="text" id="nombre"></div>
-        <div class="form-group"><label>Apellido</label><input type="text" id="apellido"></div>
-        <div class="form-group"><label>Comentario</label><textarea id="comentario"></textarea></div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Reserva</label>
+            <input type="text" id="reserva" placeholder="000000" required>
+          </div>
+          <div class="form-group">
+            <label>Monto</label>
+            <input type="number" id="monto" placeholder="$" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Contacto</label>
+          <input type="text" id="contacto" placeholder="Correo o Whatsapp donde se encuentre la tarjeta" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" id="nombre" placeholder="De quien envió la tarjeta">
+          </div>
+          <div class="form-group">
+            <label>Apellido</label>
+            <input type="text" id="apellido" placeholder="De quien envió la tarjeta">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Comentario</label>
+          <textarea id="comentario" rows="3" placeholder="Info adicional"></textarea>
+        </div>
+
         <div class="button-group">
           <button type="submit" class="primary" id="btnRegistrar">Registrar</button>
-          <button type="reset">Limpiar</button>
+          <button type="reset" id="btnLimpiar">Limpiar / Cancelar</button>
         </div>
       </form>
     </div>
 
     <div class="table-section">
-      <h2>📋 Cobros Registrados</h2>
+      <h2 style="margin-bottom: 1rem;">📋 Cobros Registrados</h2>
       <div id="recordsList">Cargando...</div>
     </div>
   </div>
 </div>
 
 <script>
-const API_URL = 'https://sheetdb.io/api/v1/g5o4pfx1hc0ci';
+  const API_URL = 'https://sheetdb.io/api/v1/g5o4pfx1hc0ci';
+  
+  // Variables globales para la edición
+  let cobrosCache = []; 
+  let modoEdicion = false;
+  let reservaEditando = null;
 
+  // 1. Cargar datos desde SheetDB
   async function cargarDatos() {
     const list = document.getElementById('recordsList');
     try {
       const res = await fetch(API_URL);
       if (!res.ok) throw new Error("Error " + res.status);
+      
       const data = await res.json();
+      cobrosCache = data; // Guardamos en caché para usar al editar
       list.innerHTML = '';
+      
       if (!data || data.length === 0) {
         list.innerHTML = '<p style="text-align:center;color:#999;">El Excel está vacío.</p>';
         return;
       }
-      data.reverse().forEach(item => {
+      
+      // Invertir para mostrar primero los últimos, pero clonando el array para no mutar el caché
+      [...data].reverse().forEach(item => {
         list.innerHTML += `
           <div class="record-item">
             <div class="record-header"><span>#${item.reserva}</span><span>$${item.monto}</span></div>
-            <div style="font-size:13px;">${item.nombre} ${item.apellido}<br>${item.contacto}</div>
+            <div style="font-size:13px; color:#555;">
+              <strong>${item.nombre} ${item.apellido}</strong><br>
+              Contacto: ${item.contacto}<br>
+              ${item.comentario ? `<em>Nota: ${item.comentario}</em>` : ''}
+            </div>
+            <div class="record-actions">
+              <button class="btn-editar" onclick="iniciarEdicion('${item.reserva}')">✏️ Editar</button>
+            </div>
           </div>`;
       });
     } catch (e) {
@@ -81,33 +144,96 @@ const API_URL = 'https://sheetdb.io/api/v1/g5o4pfx1hc0ci';
     }
   }
 
+  // 2. Llenar el formulario para editar
+  window.iniciarEdicion = function(reservaId) {
+    const cobro = cobrosCache.find(c => c.reserva === reservaId);
+    if (!cobro) return;
+
+    // Poblar los inputs
+    document.getElementById('reserva').value = cobro.reserva;
+    document.getElementById('monto').value = cobro.monto;
+    document.getElementById('contacto').value = cobro.contacto;
+    document.getElementById('nombre').value = cobro.nombre;
+    document.getElementById('apellido').value = cobro.apellido;
+    document.getElementById('comentario').value = cobro.comentario || '';
+
+    // Cambiar la UI a "Modo Edición"
+    modoEdicion = true;
+    reservaEditando = reservaId;
+    
+    // Bloquear el campo de reserva para no perder la referencia (identificador)
+    document.getElementById('reserva').disabled = true;
+    
+    const btn = document.getElementById('btnRegistrar');
+    btn.innerText = 'Actualizar Cobro';
+    btn.className = 'edit-mode';
+    
+    // Hacer scroll hacia arriba suavemente
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 3. Manejar el Reset / Cancelar Edición
+  document.getElementById('cobroForm').addEventListener('reset', () => {
+    modoEdicion = false;
+    reservaEditando = null;
+    document.getElementById('reserva').disabled = false;
+    
+    const btn = document.getElementById('btnRegistrar');
+    btn.innerText = 'Registrar';
+    btn.className = 'primary';
+  });
+
+  // 4. Enviar Formulario (Crear o Actualizar)
   document.getElementById('cobroForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnRegistrar');
+    const textoOriginal = btn.innerText;
+    
     btn.innerText = 'Guardando...';
     btn.disabled = true;
+    
+    // Construir el objeto de datos
+    const payload = {
+      reserva: document.getElementById('reserva').value,
+      monto: document.getElementById('monto').value,
+      contacto: document.getElementById('contacto').value,
+      nombre: document.getElementById('nombre').value,
+      apellido: document.getElementById('apellido').value,
+      comentario: document.getElementById('comentario').value
+    };
+
     try {
-      await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data: [{
-            reserva: document.getElementById('reserva').value,
-            monto: document.getElementById('monto').value,
-            contacto: document.getElementById('contacto').value,
-            nombre: document.getElementById('nombre').value,
-            apellido: document.getElementById('apellido').value,
-            comentario: document.getElementById('comentario').value
-          }]
-        })
-      });
+      if (modoEdicion) {
+        // ACTUALIZAR (PUT) buscando por la columna 'reserva'
+        await fetch(`${API_URL}/reserva/${reservaEditando}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: payload })
+        });
+        alert('¡Cobro actualizado con éxito!');
+      } else {
+        // CREAR NUEVO (POST)
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: [payload] })
+        });
+        alert('¡Cobro registrado!');
+      }
+      
+      // Limpiar formulario y recargar lista
       document.getElementById('cobroForm').reset();
-      alert('¡Registrado!');
       cargarDatos();
-    } catch (e) { alert('Error al guardar'); }
-    finally { btn.innerText = 'Registrar'; btn.disabled = false; }
+      
+    } catch (e) { 
+      alert('Error al guardar. Por favor intente nuevamente.'); 
+    } finally { 
+      btn.innerText = textoOriginal; 
+      btn.disabled = false; 
+    }
   });
 
+  // Cargar datos al iniciar
   window.onload = cargarDatos;
 </script>
 </body>
